@@ -22,6 +22,11 @@ class TicTacToeGameState(TwoPlayersAbstractGameState):
     o = -1
 
     def __init__(self, state, next_to_move=1, win=None):
+        """
+        Wraps a square 2D numpy `state` (1 for x, -1 for o, 0 for empty),
+        raises ValueError for any other shape. `win` is the number of marks
+        in a row needed to win and defaults to the board size.
+        """
         if len(state.shape) != 2 or state.shape[0] != state.shape[1]:
             raise ValueError("Only 2D square boards allowed")
         self.board = state
@@ -33,6 +38,11 @@ class TicTacToeGameState(TwoPlayersAbstractGameState):
 
     @property
     def game_result(self):
+        """
+        Returns 1 (x) or -1 (o) if a player has `win` marks in a row, column
+        or diagonal, 0. on a full board with no winner, else None. Lines are
+        detected by summing every `win`-sized sliding window of the board.
+        """
         # check if game is over
         for i in range(self.board_size - self.win + 1):
             rowsum = np.sum(self.board[i:i+self.win], 0)
@@ -62,6 +72,10 @@ class TicTacToeGameState(TwoPlayersAbstractGameState):
         return self.game_result is not None
 
     def is_move_legal(self, move):
+        """
+        Checks that the move is made by the player whose turn it is, targets
+        a cell inside the board and that this cell is still empty.
+        """
         # check if correct player moves
         if move.value != self.next_to_move:
             return False
@@ -80,6 +94,11 @@ class TicTacToeGameState(TwoPlayersAbstractGameState):
         return self.board[move.x_coordinate, move.y_coordinate] == 0
 
     def move(self, move):
+        """
+        Returns a new game state with the move applied and the turn passed
+        to the opponent, leaving the current state unchanged. Raises
+        ValueError if the move is illegal.
+        """
         if not self.is_move_legal(move):
             raise ValueError(
                 "move {0} on board {1} is not legal". format(move, self.board)
