@@ -11,9 +11,11 @@ class TreeNode():
         self.parent = parent
         self.n_visits = 0
         
-        untried_actions = self.state.get_legal_actions()
+        self.children = []
 
-        #sum of wins +1, draws 0 and losses -1
+        self.untried_actions = self.state.get_legal_actions()
+
+        #value from viewpoint of player who moved into this node
         self.value = 0
 
     def __str__(self):
@@ -28,6 +30,8 @@ class TreeNode():
     def is_terminal(self):
         return self.state.is_game_over()
     
+    def is_fully_expanded(self):
+        return len(self.untried_actions) == 0
 
     def rollout_policy(self, legal_moves):
         #randomly selects a legal move
@@ -49,7 +53,36 @@ class TreeNode():
         print("Final result: ", current_state.game_result)
         return current_state.game_result
     
+    def backup(self, result):
+        """Backpropogate outcome up and increment n_visits"""
+        self.n_visits += 1
+        self.value += result * -self.state.next_to_move #multiply by who moves to correctly distribute results (so we learn values for both players)
 
+        if self.parent:
+            #call backup method for parent node
+            self.parent.backup(result)
+    
+
+
+class MonteCarloTreeSearch():
+    def __init__(self, node: TreeNode):
+
+        self.node : TreeNode = node
+
+    def select_action(self):
+        pass
+
+    @staticmethod
+    def _ucb_score(val, n_visits, t, c):
+        """Computes UCB-1 score. This score is used to select action
+        while balancing between exploitation and exploration"""
+
+        if n_visits == 0:
+            return float("inf")
+        exploration_term = np.sqrt(np.log(t) / n_visits)
+        avg_val = val / n_visits
+        return avg_val + c * exploration_term
+    
 
 
 if __name__ == "__main__":
